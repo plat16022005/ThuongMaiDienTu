@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sàn Thương Mại Điện Tử Sách - Khách Vãn Lai</title>
+    <!-- Tải Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Cấu hình Tailwind cho màu sắc và font chữ -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#057A55', // Màu xanh lá cây đậm, tượng trưng cho tri thức
+                        'primary-light': '#069062',
+                        'secondary': '#FBBF24', // Màu vàng nổi bật
+                        'background': '#F9FAFB', // Màu nền nhẹ
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <!-- Sử dụng Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+        }
+        .product-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Thanh header cố định (Tương tự Shopee/Lazada) -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="#" class="text-3xl font-bold text-primary hover:text-primary-light">
+                        <span class="hidden sm:inline">UTEBuk</span>
+                        <span class="sm:hidden">SV</span>
+                    </a>
+                </div>
+
+                <!-- Thanh tìm kiếm (Lớn nhất, trung tâm) -->
+                <div class="flex-1 max-w-xl mx-4 hidden md:block">
+                    <div class="relative">
+                        <input type="text" placeholder="Tìm kiếm sách, tác giả, NXB..." class="w-full py-2 pl-4 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary-light transition duration-150">
+                        <button class="absolute right-0 top-0 mt-2 mr-3 text-gray-500 hover:text-primary transition duration-150" aria-label="Tìm kiếm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+				<!-- Nút chức năng và Tài khoản -->
+				<div class="flex items-center space-x-4">
+				    <!-- Giỏ hàng -->
+				    <button class="relative p-2 rounded-full hover:bg-gray-100 transition duration-150" aria-label="Giỏ hàng">
+				        <svg class="w-6 h-6 text-gray-600 hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+				             xmlns="http://www.w3.org/2000/svg">
+				            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+				                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+				            </path>
+				        </svg>
+				        <!-- Badge số sản phẩm -->
+				        <span
+				            class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+				            3
+				        </span>
+				    </button>
+				
+				    <!-- Nút Đăng nhập/Đăng ký (khi CHƯA đăng nhập) -->
+				    <a th:if="${session.user == null}"
+				       href="/account"
+				       class="text-sm font-medium text-white bg-primary hover:bg-primary-light px-4 py-2 rounded-lg transition duration-150 shadow-md hidden sm:inline-block">
+				        Đăng nhập / Đăng ký
+				    </a>
+				
+				    <!-- Icon người dùng (khi ĐÃ đăng nhập) -->
+				    <div th:if="${session.user != null}" class="relative group hidden sm:block">
+				        <button
+				            class="flex items-center space-x-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 border border-gray-300 transition duration-150">
+				            <!-- Avatar tròn với chữ cái đầu tên -->
+				            <div
+				                class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold uppercase">
+				                <span th:text="${#strings.substring(session.user.fullName, 0, 1)}">U</span>
+				            </div>
+				            <!-- Tên user -->
+				            <span class="text-sm font-medium text-gray-700" th:text="${session.user.fullName}">User Name</span>
+				            <!-- Icon mũi tên -->
+				            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+				                 xmlns="http://www.w3.org/2000/svg">
+				                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+				                      d="M19 9l-7 7-7-7"></path>
+				            </svg>
+				        </button>
+				
+				        <!-- Dropdown -->
+				        <div
+				            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 text-sm hidden group-hover:block z-50">
+				            <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+				                Hồ sơ của tôi
+				            </a>
+				            <a href="/orders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+				                Đơn hàng của tôi
+				            </a>
+				            <a href="/logout" class="block px-4 py-2 text-red-600 hover:bg-red-100">
+				                Đăng xuất
+				            </a>
+				        </div>
+				    </div>
+				
+				    <!-- Menu mobile -->
+				    <button id="mobile-menu-button"
+				            class="md:hidden p-2 rounded-full hover:bg-gray-100 transition duration-150"
+				            aria-label="Menu">
+				        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+				             xmlns="http://www.w3.org/2000/svg">
+				            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+				                  d="M4 6h16M4 12h16M4 18h16"></path>
+				        </svg>
+				    </button>
+				</div>
+
+            </div>
+            <!-- Thanh tìm kiếm mobile (hiển thị khi màn hình nhỏ) -->
+            <div class="md:hidden pb-4">
+                <div class="relative">
+                    <input type="text" placeholder="Tìm kiếm sách, tác giả..." class="w-full py-2 pl-4 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+                    <button class="absolute right-0 top-0 mt-2 mr-3 text-gray-500 hover:text-primary" aria-label="Tìm kiếm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu Mobile mở rộng -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg border-t border-gray-100">
+        <div class="px-4 py-3 space-y-2">
+            <a href="#" class="block text-gray-700 hover:text-primary font-medium">Trang Chủ</a>
+            <a href="#" class="block text-gray-700 hover:text-primary font-medium">Văn học</a>
+            <a href="#" class="block text-gray-700 hover:text-primary font-medium">Kinh tế</a>
+            <a href="#" class="block text-gray-700 hover:text-primary font-medium">Kỹ năng</a>
+            <a href="#" class="block text-gray-700 hover:text-primary font-medium">Lịch sử</a>
+            <a href="#" class="block text-gray-700 hover:text-primary font-medium">Thiếu nhi</a>
+            <a href="#" class="block text-gray-700 hover:text-primary font-medium">Đăng nhập / Đăng ký</a>
+        </div>
+    </div>
+
+    <!-- Thanh Danh mục chính -->
+    <nav class="bg-primary-light hidden md:block border-b border-primary">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-6">
+                <a href="#" class="text-white font-semibold py-3 border-b-2 border-transparent hover:border-secondary transition duration-150">Trang Chủ</a>
+                <a href="#" class="text-white font-semibold py-3 border-b-2 border-transparent hover:border-secondary transition duration-150">Văn học</a>
+                <a href="#" class="text-white font-semibold py-3 border-b-2 border-transparent hover:border-secondary transition duration-150">Kinh tế & Quản lý</a>
+                <a href="#" class="text-white font-semibold py-3 border-b-2 border-transparent hover:border-secondary transition duration-150">Kỹ năng sống</a>
+                <a href="#" class="text-white font-semibold py-3 border-b-2 border-transparent hover:border-secondary transition duration-150">Khoa học & Công nghệ</a>
+                <a href="#" class="text-white font-semibold py-3 border-b-2 border-transparent hover:border-secondary transition duration-150">Sách Thiếu nhi</a>
+                <a href="#" class="text-white font-semibold py-3 border-b-2 border-secondary transition duration-150">Sale Sốc!</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Nội dung chính -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Banner khuyến mãi (Hero Section) -->
+        <section class="mb-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Banner chính -->
+            <div class="lg:col-span-2 bg-gradient-to-r from-primary to-primary-light p-8 rounded-xl shadow-lg flex flex-col justify-center items-start text-white h-64 md:h-80 relative overflow-hidden">
+                <span class="absolute right-0 bottom-0 text-[150px] opacity-10 leading-none select-none">&#9776;</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold mb-2 z-10">SIÊU SALE SÁCH MÙA HÈ!</h2>
+                <p class="text-xl font-light mb-4 z-10">Giảm đến 70% tất cả các đầu sách kinh điển.</p>
+                <a href="#" class="bg-secondary text-primary font-bold py-3 px-6 rounded-lg hover:bg-yellow-400 transition duration-300 shadow-xl z-10">
+                    Khám phá ngay
+                </a>
+            </div>
+
+            <!-- Banner phụ (Quảng cáo ứng dụng/Dịch vụ) -->
+            <div class="lg:col-span-1 space-y-4">
+                <div class="bg-white p-6 rounded-xl shadow-md h-38 flex items-center justify-between border border-gray-200 hover:border-primary transition duration-300">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-1">Freeship Mọi Đơn</h3>
+                        <p class="text-sm text-gray-500">Áp dụng cho đơn hàng từ 150K</p>
+                    </div>
+                    <svg class="w-10 h-10 text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2a2.9 2.9 0 01-1.606-.576l-.37.37m0 0l-2.5 2.5a1 1 0 01-1.414 0l-2.5-2.5a1 1 0 010-1.414l2.5-2.5a1 1 0 011.414 0l.37.37m3.232 3.232l-3.232-3.232M12 21a9 9 0 100-18 9 9 0 000 18z"></path></svg>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md h-38 flex items-center justify-between border border-gray-200 hover:border-primary transition duration-300">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-1">Giảm Thêm 10%</h3>
+                        <p class="text-sm text-gray-500">Khi thanh toán qua ví điện tử</p>
+                    </div>
+                    <svg class="w-10 h-10 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m0 0l-2 2h8m-8-2v-4a2 2 0 012-2h2m-6 4a2 2 0 100 4 2 2 0 000-4z"></path></svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Danh mục nổi bật (Tương tự Categories trên Lazada/Shopee) -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Danh mục nổi bật</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+                <!-- Danh mục 1 -->
+                <a href="#" class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200">
+                    <img src="https://placehold.co/64x64/057A55/ffffff?text=VH" alt="Văn học Icon" class="w-10 h-10 mb-2 rounded-full border p-1">
+                    <span class="text-sm text-center font-medium text-gray-700">Văn học</span>
+                </a>
+                <!-- Danh mục 2 -->
+                <a href="#" class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200">
+                    <img src="https://placehold.co/64x64/FBBF24/ffffff?text=KT" alt="Kinh tế Icon" class="w-10 h-10 mb-2 rounded-full border p-1">
+                    <span class="text-sm text-center font-medium text-gray-700">Kinh tế</span>
+                </a>
+                <!-- Danh mục 3 -->
+                <a href="#" class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200">
+                    <img src="https://placehold.co/64x64/3B82F6/ffffff?text=KN" alt="Kỹ năng Icon" class="w-10 h-10 mb-2 rounded-full border p-1">
+                    <span class="text-sm text-center font-medium text-gray-700">Kỹ năng</span>
+                </a>
+                <!-- Danh mục 4 -->
+                <a href="#" class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200">
+                    <img src="https://placehold.co/64x64/EF4444/ffffff?text=LS" alt="Lịch sử Icon" class="w-10 h-10 mb-2 rounded-full border p-1">
+                    <span class="text-sm text-center font-medium text-gray-700">Lịch sử</span>
+                </a>
+                <!-- Danh mục 5 -->
+                <a href="#" class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200">
+                    <img src="https://placehold.co/64x64/10B981/ffffff?text=TN" alt="Thiếu nhi Icon" class="w-10 h-10 mb-2 rounded-full border p-1">
+                    <span class="text-sm text-center font-medium text-gray-700">Thiếu nhi</span>
+                </a>
+                <!-- Danh mục 6 -->
+                <a href="#" class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200">
+                    <img src="https://placehold.co/64x64/6366F1/ffffff?text=NN" alt="Ngoại ngữ Icon" class="w-10 h-10 mb-2 rounded-full border p-1">
+                    <span class="text-sm text-center font-medium text-gray-700">Ngoại ngữ</span>
+                </a>
+                <!-- Danh mục 7 -->
+                <a href="#" class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200">
+                    <img src="https://placehold.co/64x64/9CA3AF/ffffff?text=PC" alt="Phát triển cá nhân Icon" class="w-10 h-10 mb-2 rounded-full border p-1">
+                    <span class="text-sm text-center font-medium text-gray-700">Phát triển</span>
+                </a>
+                <!-- Danh mục 8 -->
+                <a href="#" class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200">
+                    <img src="https://placehold.co/64x64/EAB308/ffffff?text=NN" alt="Nấu ăn Icon" class="w-10 h-10 mb-2 rounded-full border p-1">
+                    <span class="text-sm text-center font-medium text-gray-700">Nấu ăn</span>
+                </a>
+            </div>
+        </section>
+
+
+        <!-- Flash Sale / Sách bán chạy nhất (Đề xuất cho Khách vãn lai) -->
+        <section class="mb-12 bg-white p-6 rounded-xl shadow-lg border border-red-100">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-red-600 flex items-center">
+                    <svg class="w-6 h-6 mr-2 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    SÁCH BÁN CHẠY NHẤT
+                </h2>
+                <a href="#" class="text-sm font-medium text-primary hover:text-primary-light">Xem tất cả ></a>
+            </div>
+
+            <!-- Danh sách sản phẩm -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <!-- Thẻ sản phẩm mẫu 1 -->
+                <div class="product-card bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+                    <img src="https://placehold.co/150x220/8b5cf6/ffffff?text=Sách+1" alt="Bức Thư Tình" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Bức Thư Tình Của Người Đàn Ông Không Quen">Bức Thư Tình Của Người Đàn Ông Không Quen</h3>
+                    <p class="text-xs text-gray-500 mb-2">Stefan Zweig</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-lg font-bold text-red-600 mr-2">99.000₫</span>
+                        <span class="text-xs text-gray-400 line-through">150.000₫</span>
+                    </div>
+                    <button class="w-full bg-primary text-white text-sm py-1.5 rounded-full hover:bg-primary-light transition duration-150">
+                        Thêm vào Giỏ
+                    </button>
+                </div>
+
+                <!-- Thẻ sản phẩm mẫu 2 -->
+                <div class="product-card bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+                    <img src="https://placehold.co/150x220/10b981/ffffff?text=Sách+2" alt="Tư Duy Nhanh" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Tư Duy Nhanh và Chậm">Tư Duy Nhanh và Chậm</h3>
+                    <p class="text-xs text-gray-500 mb-2">Daniel Kahneman</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-lg font-bold text-red-600 mr-2">189.000₫</span>
+                        <span class="text-xs text-gray-400 line-through">250.000₫</span>
+                    </div>
+                    <button class="w-full bg-primary text-white text-sm py-1.5 rounded-full hover:bg-primary-light transition duration-150">
+                        Thêm vào Giỏ
+                    </button>
+                </div>
+
+                <!-- Thẻ sản phẩm mẫu 3 -->
+                <div class="product-card bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+                    <img src="https://placehold.co/150x220/ef4444/ffffff?text=Sách+3" alt="Hoàng Tử Bé" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Hoàng Tử Bé">Hoàng Tử Bé</h3>
+                    <p class="text-xs text-gray-500 mb-2">Antoine de Saint-Exupéry</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-lg font-bold text-red-600 mr-2">65.000₫</span>
+                        <span class="text-xs text-gray-400 line-through">89.000₫</span>
+                    </div>
+                    <button class="w-full bg-primary text-white text-sm py-1.5 rounded-full hover:bg-primary-light transition duration-150">
+                        Thêm vào Giỏ
+                    </button>
+                </div>
+
+                <!-- Thẻ sản phẩm mẫu 4 -->
+                <div class="product-card bg-gray-50 rounded-lg p-3 text-center border border-gray-100">
+                    <img src="https://placehold.co/150x220/f97316/ffffff?text=Sách+4" alt="Đắc Nhân Tâm" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Đắc Nhân Tâm">Đắc Nhân Tâm</h3>
+                    <p class="text-xs text-gray-500 mb-2">Dale Carnegie</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-lg font-bold text-red-600 mr-2">115.000₫</span>
+                        <span class="text-xs text-gray-400 line-through">145.000₫</span>
+                    </div>
+                    <button class="w-full bg-primary text-white text-sm py-1.5 rounded-full hover:bg-primary-light transition duration-150">
+                        Thêm vào Giỏ
+                    </button>
+                </div>
+                
+                <!-- Thẻ sản phẩm mẫu 5 -->
+                <div class="product-card bg-gray-50 rounded-lg p-3 text-center border border-gray-100 hidden lg:block">
+                    <img src="https://placehold.co/150x220/3b82f6/ffffff?text=Sách+5" alt="Khuyến học" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Khuyến học">Khuyến học</h3>
+                    <p class="text-xs text-gray-500 mb-2">Fukuzawa Yukichi</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-lg font-bold text-red-600 mr-2">70.000₫</span>
+                        <span class="text-xs text-gray-400 line-through">95.000₫</span>
+                    </div>
+                    <button class="w-full bg-primary text-white text-sm py-1.5 rounded-full hover:bg-primary-light transition duration-150">
+                        Thêm vào Giỏ
+                    </button>
+                </div>
+
+                 <!-- Thẻ sản phẩm mẫu 6 -->
+                <div class="product-card bg-gray-50 rounded-lg p-3 text-center border border-gray-100 hidden xl:block">
+                    <img src="https://placehold.co/150x220/6366f1/ffffff?text=Sách+6" alt="Truyện Kiều" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Truyện Kiều">Truyện Kiều</h3>
+                    <p class="text-xs text-gray-500 mb-2">Nguyễn Du</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-lg font-bold text-red-600 mr-2">45.000₫</span>
+                        <span class="text-xs text-gray-400 line-through">60.000₫</span>
+                    </div>
+                    <button class="w-full bg-primary text-white text-sm py-1.5 rounded-full hover:bg-primary-light transition duration-150">
+                        Thêm vào Giỏ
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Khu vực Sách theo chủ đề (Cá nhân hóa/Gợi ý) -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 border-b-primary">Sách mới về</h2>
+                <a href="#" class="text-sm font-medium text-primary hover:text-primary-light">Xem thêm ></a>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <!-- Thẻ sản phẩm mới 1 -->
+                <div class="product-card bg-white rounded-lg p-3 text-center shadow-sm">
+                    <img src="https://placehold.co/150x220/D97706/ffffff?text=Sách+Mới+1" alt="Lịch sử VN" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Lịch sử Việt Nam qua các thời kỳ">Lịch sử Việt Nam qua các thời kỳ</h3>
+                    <p class="text-xs text-gray-500 mb-2">GS. Trần Văn A</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-base font-bold text-gray-800">199.000₫</span>
+                    </div>
+                    <button class="w-full border border-primary text-primary text-sm py-1.5 rounded-full hover:bg-primary hover:text-white transition duration-150">
+                        Chi tiết
+                    </button>
+                </div>
+
+                <!-- Thẻ sản phẩm mới 2 -->
+                <div class="product-card bg-white rounded-lg p-3 text-center shadow-sm">
+                    <img src="https://placehold.co/150x220/BE185D/ffffff?text=Sách+Mới+2" alt="Bí mật" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Bí mật của người kể chuyện">Bí mật của người kể chuyện</h3>
+                    <p class="text-xs text-gray-500 mb-2">Tác giả B</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-base font-bold text-gray-800">120.000₫</span>
+                    </div>
+                    <button class="w-full border border-primary text-primary text-sm py-1.5 rounded-full hover:bg-primary hover:text-white transition duration-150">
+                        Chi tiết
+                    </button>
+                </div>
+                 <!-- Thẻ sản phẩm mới 3 -->
+                <div class="product-card bg-white rounded-lg p-3 text-center shadow-sm">
+                    <img src="https://placehold.co/150x220/991B3F/ffffff?text=Sách+Mới+3" alt="Lập trình" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Lập trình web hiện đại">Lập trình web hiện đại</h3>
+                    <p class="text-xs text-gray-500 mb-2">Chuyên gia C</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-base font-bold text-gray-800">350.000₫</span>
+                    </div>
+                    <button class="w-full border border-primary text-primary text-sm py-1.5 rounded-full hover:bg-primary hover:text-white transition duration-150">
+                        Chi tiết
+                    </button>
+                </div>
+                 <!-- Thẻ sản phẩm mới 4 -->
+                <div class="product-card bg-white rounded-lg p-3 text-center shadow-sm hidden md:block">
+                    <img src="https://placehold.co/150x220/15803D/ffffff?text=Sách+Mới+4" alt="Thiên văn" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Thiên văn học cơ bản">Thiên văn học cơ bản</h3>
+                    <p class="text-xs text-gray-500 mb-2">TS. Khoa học</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-base font-bold text-gray-800">140.000₫</span>
+                    </div>
+                    <button class="w-full border border-primary text-primary text-sm py-1.5 rounded-full hover:bg-primary hover:text-white transition duration-150">
+                        Chi tiết
+                    </button>
+                </div>
+                 <!-- Thẻ sản phẩm mới 5 -->
+                <div class="product-card bg-white rounded-lg p-3 text-center shadow-sm hidden lg:block">
+                    <img src="https://placehold.co/150x220/4B5563/ffffff?text=Sách+Mới+5" alt="Tâm lý học" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="Tâm lý học về tiền">Tâm lý học về tiền</h3>
+                    <p class="text-xs text-gray-500 mb-2">Morgan Housel</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-base font-bold text-gray-800">175.000₫</span>
+                    </div>
+                    <button class="w-full border border-primary text-primary text-sm py-1.5 rounded-full hover:bg-primary hover:text-white transition duration-150">
+                        Chi tiết
+                    </button>
+                </div>
+                 <!-- Thẻ sản phẩm mới 6 -->
+                <div class="product-card bg-white rounded-lg p-3 text-center shadow-sm hidden xl:block">
+                    <img src="https://placehold.co/150x220/6D28D9/ffffff?text=Sách+Mới+6" alt="Tiếng Anh" class="w-full h-auto object-cover rounded-md mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 min-h-[40px]" title="1001 Từ vựng Tiếng Anh Giao tiếp">1001 Từ vựng Tiếng Anh Giao tiếp</h3>
+                    <p class="text-xs text-gray-500 mb-2">Nhóm Tác giả</p>
+                    <div class="flex justify-center items-baseline mb-2">
+                        <span class="text-base font-bold text-gray-800">90.000₫</span>
+                    </div>
+                    <button class="w-full border border-primary text-primary text-sm py-1.5 rounded-full hover:bg-primary hover:text-white transition duration-150">
+                        Chi tiết
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Banner khuyến mãi lớn thứ hai -->
+        <section class="mb-12">
+            <div class="bg-yellow-100 p-8 rounded-xl shadow-lg flex flex-col md:flex-row justify-between items-center border-l-8 border-secondary">
+                <div class="text-center md:text-left mb-4 md:mb-0">
+                    <h3 class="text-3xl font-bold text-gray-900">NHẬP EMAIL ĐỂ NHẬN MÃ GIẢM GIÁ 15%</h3>
+                    <p class="text-gray-600 mt-1">Đăng ký nhận bản tin để không bỏ lỡ ưu đãi nào!</p>
+                </div>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
+                    <input type="email" placeholder="Nhập email của bạn" class="w-full sm:w-64 py-3 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary">
+                    <button class="bg-secondary text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-yellow-400 transition duration-300 shadow-md">
+                        Đăng ký
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer (Tương tự sàn TMĐT) -->
+    <footer class="bg-gray-800 text-white py-10 mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <!-- Cột 1: Giới thiệu -->
+                <div>
+                    <h4 class="font-bold text-xl mb-4 text-primary-light">Sách Việt</h4>
+                    <p class="text-sm text-gray-400">Nền tảng thương mại điện tử sách lớn nhất Việt Nam. Mang tri thức đến mọi nhà.</p>
+                </div>
+
+                <!-- Cột 2: Hỗ trợ khách hàng -->
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Hỗ trợ khách hàng</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-primary transition duration-150">Trung tâm trợ giúp</a></li>
+                        <li><a href="#" class="hover:text-primary transition duration-150">Chính sách đổi trả</a></li>
+                        <li><a href="#" class="hover:text-primary transition duration-150">Vận chuyển</a></li>
+                        <li><a href="#" class="hover:text-primary transition duration-150">Thanh toán</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột 3: Về Sách Việt -->
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Về Sách Việt</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-primary transition duration-150">Giới thiệu</a></li>
+                        <li><a href="#" class="hover:text-primary transition duration-150">Tuyển dụng</a></li>
+                        <li><a href="#" class="hover:text-primary transition duration-150">Điều khoản</a></li>
+                        <li><a href="#" class="hover:text-primary transition duration-150">Bán hàng cùng chúng tôi</a></li>
+                    </ul>
+                </div>
+
+                <!-- Cột 4: Kết nối -->
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Kết nối với chúng tôi</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" aria-label="Facebook" class="text-gray-400 hover:text-primary transition duration-150">
+                            <!-- Icon Facebook (Sử dụng SVG nội tuyến) -->
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M14.07 4.93C13.5 4.93 13 5.43 13 6.07V9H16.08L15.7 12H13V22H9V12H7V9H9V6.5C9 4.34 10.4 3 12.8 3H16V4.93H14.07Z"></path></svg>
+                        </a>
+                        <a href="#" aria-label="Instagram" class="text-gray-400 hover:text-primary transition duration-150">
+                            <!-- Icon Instagram (Sử dụng SVG nội tuyến) -->
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C9.82 2 8 3.82 8 6s1.82 4 4 4 4-1.82 4-4-1.82-4-4-4zm6 0h-3.08c-.28-.7-.66-1.34-1.12-1.89C13.2 0.44 12.6 0 12 0s-1.2.44-1.8.89c-.46.55-.84 1.19-1.12 1.89H6C3.79 2 2 3.79 2 6v12c0 2.21 1.79 4 4 4h12c2.21 0 4-1.79 4-4V6c0-2.21-1.79-4-4-4zm-8 4a6 6 0 110 12 6 6 0 010-12zm6.5-1.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path></svg>
+                        </a>
+                        <a href="#" aria-label="Zalo" class="text-gray-400 hover:text-primary transition duration-150">
+                            <!-- Icon Zalo (Sử dụng SVG nội tuyến, giả định) -->
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.25 15.3l-.22-.16c-1.35-.98-2.61-1.9-3.78-2.65-.67-.44-1.33-.87-1.95-1.22l-.12-.07c-.44-.25-.86-.49-1.28-.73l-.28-.15c-.17-.09-.34-.18-.5-.26-.14-.07-.28-.14-.42-.2-.23-.1-.45-.2-.67-.3v-1.1c.32.05.65.1 1 .15l.65.1.75.2c.48.1.95.2 1.4.35 1.05.3 2.05.8 2.95 1.5.7.5 1.35 1.1 1.9 1.8l.2.25v2.4zm2.1-4.75c-.32.32-.65.65-.98.98-.32.32-.65.65-.98.98l-2.07-2.07c-.15-.15-.3-.3-.45-.45l-.45-.45-1.4 1.4c.15.15.3.3.45.45l.45.45 2.07 2.07c.32.32.65.65.98.98.32.32.65.65.98.98.15.15.3.3.45.45l.45.45 1.4-1.4-.45-.45c-.15-.15-.3-.3-.45-.45l-2.07-2.07c-.32-.32-.65-.65-.98-.98-.32-.32-.65-.65-.98-.98l-1.4 1.4z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bản quyền -->
+            <div class="mt-8 pt-6 border-t border-gray-700 text-center text-sm text-gray-500">
+                <p>&copy; 2024 Sách Việt. Tất cả bản quyền được bảo lưu.</p>
+                <p class="mt-1">Phát triển với Tailwind CSS &hearts;</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript để xử lý đóng mở menu mobile -->
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+    </script>
+
+</body>
+</html>

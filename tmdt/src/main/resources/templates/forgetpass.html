@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quên Mật Khẩu - UTEBuk</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Cấu hình Tailwind đồng bộ với trang Đăng nhập/Đăng ký -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#057A55', // Xanh UTEBuk
+                        'primary-light': '#069062',
+                        'secondary': '#FBBF24',
+                        'background': '#F9FAFB',
+                        'ute-blue': '#1D4ED8',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Styles cho hiệu ứng nền Blob */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F0FDF4 0%, #E0F2FE 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            z-index: 0;
+            transition: all 0.5s ease-in-out;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: 5%;
+            left: 10%;
+            background-color: #057A55;
+            animation: moveBlob1 15s infinite alternate ease-in-out;
+        }
+        body::after {
+            width: 400px;
+            height: 400px;
+            bottom: 5%;
+            right: 15%;
+            background-color: #1D4ED8;
+            animation: moveBlob2 20s infinite alternate ease-in-out;
+        }
+        @keyframes moveBlob1 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, -50px) scale(1.1); }
+        }
+        @keyframes moveBlob2 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-30px, 30px) scale(0.95); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+<div class="main-container w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border border-gray-100 transition-all duration-300 relative z-10">
+
+    <!-- Logo + Title -->
+    <div class="text-center mb-8">
+        <a href="/" class="text-3xl font-extrabold mb-1 text-primary">UTEBuk</a>
+        <h1 class="text-2xl font-bold text-gray-800 mt-2">Khôi phục Mật khẩu</h1>
+        <p class="text-sm text-gray-500 mt-1">Nhập email để nhận liên kết đặt lại mật khẩu.</p>
+    </div>
+
+    <!-- Form Quên Mật Khẩu -->
+    <form onsubmit="handlePasswordReset(event)" class="space-y-6">
+        <!-- Email -->
+        <div>
+            <label for="recovery-email" class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ Email</label>
+            <input type="email" id="recovery-email" name="email" required placeholder="example@email.com"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition duration-150"
+                   aria-describedby="email-help">
+            <p id="email-help" class="mt-1 text-xs text-gray-500">Chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu đến email này.</p>
+        </div>
+
+        <!-- Nút Gửi -->
+        <button type="submit" class="w-full bg-primary text-white font-bold py-2.5 rounded-xl hover:bg-primary-light transition duration-200 shadow-lg shadow-green-400/50">
+            Gửi liên kết khôi phục
+        </button>
+
+        <!-- Quay lại Đăng nhập -->
+        <p class="text-center text-sm text-gray-600 mt-6 pt-4 border-t">
+            <a href="/account" class="font-bold text-ute-blue hover:text-primary transition duration-150 ml-1">
+                Quay lại Đăng nhập
+            </a>
+        </p>
+    </form>
+
+</div>
+
+<!-- Message Box (Modal) -->
+<div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div id="message-panel" class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
+        <p id="message-text" class="text-lg font-semibold mb-4 text-gray-800"></p>
+        <button id="close-message-box" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-150">
+            Đóng
+        </button>
+    </div>
+</div>
+
+<script>
+    // Lấy element
+    const messageBox = document.getElementById('message-box');
+    const messageText = document.getElementById('message-text');
+    const closeMessageBoxButton = document.getElementById('close-message-box');
+    const messagePanel = document.getElementById('message-panel');
+
+    // Hàm show Message Box
+    function showMessage(text, type = 'info') {
+        messageText.textContent = text;
+
+        // Reset class border theo type
+        messagePanel.classList.remove('border', 'border-green-400', 'border-red-400');
+        if (type === 'success') {
+            messagePanel.classList.add('border', 'border-green-400');
+        } else if (type === 'error') {
+            messagePanel.classList.add('border', 'border-red-400');
+        } else {
+            messagePanel.classList.add('border', 'border-gray-300');
+        }
+
+        messageBox.classList.remove('hidden');
+        messageBox.classList.add('flex');
+    }
+
+    // Đóng message box
+    closeMessageBoxButton.addEventListener('click', () => {
+        messageBox.classList.add('hidden');
+        messageBox.classList.remove('flex');
+    });
+
+    // Xử lý gửi form
+    function handlePasswordReset(event) {
+        event.preventDefault(); // Ngăn chặn form gửi đi thực tế
+        const email = document.getElementById('recovery-email').value;
+
+        if (email) {
+            // Đây là nơi bạn sẽ gọi API khôi phục mật khẩu thực tế
+            // Tạm thời, show thông báo thành công giả lập
+            showMessage(`Đã gửi liên kết khôi phục mật khẩu đến địa chỉ email: ${email}. Vui lòng kiểm tra hộp thư.`, 'success');
+        } else {
+            showMessage("Vui lòng nhập địa chỉ email của bạn.", 'error');
+        }
+    }
+</script>
+
+</body>
+</html>
