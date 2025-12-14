@@ -91,7 +91,7 @@
 
     <!-- FORM: Nhập Mã OTP -->
     <form id="otp-form" onsubmit="handleVerifyOtp(event)" class="space-y-6">
-        <p class="text-sm text-gray-600 text-center">Mã OTP đã được gửi đến: <span id="display-email" class="font-bold text-primary">user@ute.edu.vn</span></p>
+        <p class="text-sm text-gray-600 text-center">Mã OTP đã được gửi đến: <span id="display-email" class="font-bold text-primary" th:text="${email}">user@ute.edu.vn</span></p>
         
         <!-- Ô nhập OTP 6 số -->
         <div class="otp-input-group flex justify-between space-x-2 sm:space-x-3" id="otp-inputs">
@@ -218,29 +218,34 @@
     }
 
     // Xử lý Gửi lại OTP
-    function handleResendOtp() {
-        // Giả lập gọi API gửi lại mã
-        showMessage(`Đã gửi lại mã OTP đến: ${userEmail}.`, 'info');
-        startCountdown(OTP_RESEND_TIME);
-    }
-    
-    // --- Logic xử lý Form ---
-
-    // Xử lý Xác nhận OTP
-    function handleVerifyOtp(event) {
-        event.preventDefault();
-        // Lấy mã OTP từ các ô input
-        const otpCode = Array.from(otpInputs).map(input => input.value).join('');
-
-        if (otpCode.length === 6 && /^\d+$/.test(otpCode)) {
-            // Giả lập xác thực OTP thành công
-            showMessage("Xác thực thành công! Chuyển sang đặt mật khẩu mới.", 'success');
-            stopCountdown();
-
-        } else {
-            showMessage("Mã OTP không hợp lệ. Vui lòng nhập đủ 6 chữ số.", 'error');
-        }
-    }
+	function handleVerifyOtp(event) {
+	    event.preventDefault();
+	
+	    const otpCode = Array.from(otpInputs)
+	        .map(input => input.value)
+	        .join('');
+	
+	    if (otpCode.length !== 6) {
+	        showMessage("Vui lòng nhập đủ 6 chữ số", "error");
+	        return;
+	    }
+	
+	    fetch("/api/email/verify-otp", {
+	        method: "POST",
+	        headers: { "Content-Type": "application/json" },
+	        body: JSON.stringify({ otp: otpCode })
+	    })
+	    .then(async res => {
+	        const text = await res.text();
+	        if (!res.ok) throw new Error(text);
+	
+	        // ✅ OTP ĐÚNG → CHUYỂN TRANG
+	        window.location.href = "/reset-password";
+	    })
+	    .catch(err => {
+	        showMessage(err.message || "OTP không đúng", "error");
+	    });
+	}
 
     // --- Logic tự động focus và chỉ cho phép số trong ô OTP ---
     otpInputs.forEach((input, index) => {

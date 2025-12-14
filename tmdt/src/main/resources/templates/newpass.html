@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt Lại Mật Khẩu - UTEBuk</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Cấu hình Tailwind đồng bộ -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#057A55', // Xanh UTEBuk
+                        'primary-light': '#069062',
+                        'secondary': '#FBBF24',
+                        'background': '#F9FAFB',
+                        'ute-blue': '#1D4ED8',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Styles cho hiệu ứng nền Blob (đồng bộ) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F0FDF4 0%, #E0F2FE 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            z-index: 0;
+            transition: all 0.5s ease-in-out;
+        }
+        body::before {
+            width: 300px;
+            height: 300px;
+            top: 5%;
+            left: 10%;
+            background-color: #057A55;
+            animation: moveBlob1 15s infinite alternate ease-in-out;
+        }
+        body::after {
+            width: 400px;
+            height: 400px;
+            bottom: 5%;
+            right: 15%;
+            background-color: #1D4ED8;
+            animation: moveBlob2 20s infinite alternate ease-in-out;
+        }
+        @keyframes moveBlob1 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, -50px) scale(1.1); }
+        }
+        @keyframes moveBlob2 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-30px, 30px) scale(0.95); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+<div class="main-container w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border border-gray-100 transition-all duration-300 relative z-10">
+
+    <!-- Logo + Title -->
+    <div class="text-center mb-8">
+        <a href="/" class="text-3xl font-extrabold mb-1 text-primary">UTEBuk</a>
+        <h1 class="text-2xl font-bold text-gray-800 mt-2">Tạo mật khẩu mới</h1>
+        <p class="text-sm text-gray-500 mt-1">Hãy nhập mật khẩu mạnh để bảo vệ tài khoản.</p>
+    </div>
+
+    <!-- Form Đặt lại mật khẩu -->
+    <form id="reset-password-form" onsubmit="handleResetPassword(event)" class="space-y-6">
+        
+        <!-- Mật khẩu mới -->
+        <div>
+            <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+            <div class="relative">
+                <input type="password" id="new-password" name="new-password" required placeholder="Tối thiểu 6 ký tự"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-ute-blue focus:border-ute-blue transition duration-150">
+                <!-- Icon mắt (ẩn/hiện) có thể thêm sau nếu cần -->
+            </div>
+        </div>
+
+        <!-- Nhập lại mật khẩu -->
+        <div>
+            <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu</label>
+            <input type="password" id="confirm-password" name="confirm-password" required placeholder="Nhập lại mật khẩu mới"
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-ute-blue focus:border-ute-blue transition duration-150">
+        </div>
+
+        <!-- Nút Xác nhận -->
+        <button type="submit" class="w-full bg-ute-blue text-white font-bold py-2.5 rounded-xl hover:bg-blue-700 transition duration-200 shadow-lg shadow-blue-400/50">
+            Đổi mật khẩu
+        </button>
+
+    </form>
+
+</div>
+
+<!-- Message Box (Modal thông báo) -->
+<div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div id="message-panel" class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
+        <!-- Icon thành công/thất bại sẽ được inject vào đây -->
+        <div id="message-icon" class="mb-4 flex justify-center"></div>
+        <p id="message-text" class="text-lg font-semibold mb-4 text-gray-800"></p>
+        <button id="close-message-box" class="bg-primary text-white py-2 px-6 rounded-lg hover:bg-primary-light transition duration-150">
+            Đóng
+        </button>
+    </div>
+</div>
+
+<script>
+    // Lấy elements
+    const messageBox = document.getElementById('message-box');
+    const messageText = document.getElementById('message-text');
+    const messageIcon = document.getElementById('message-icon');
+    const closeMessageBoxButton = document.getElementById('close-message-box');
+    const messagePanel = document.getElementById('message-panel');
+
+    // Hàm hiển thị Message Box
+    function showMessage(text, type = 'info') {
+        messageText.textContent = text;
+        
+        // Reset styles
+        messagePanel.className = "bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center border-t-4";
+        messageIcon.innerHTML = "";
+
+        if (type === 'success') {
+            messagePanel.classList.add('border-green-500');
+            // Icon check xanh
+            messageIcon.innerHTML = `<svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            closeMessageBoxButton.textContent = "Về trang Đăng nhập";
+            closeMessageBoxButton.className = "bg-primary text-white py-2 px-6 rounded-lg hover:bg-primary-light transition duration-150";
+            
+            // Logic nút đóng khi thành công -> Chuyển trang
+            closeMessageBoxButton.onclick = function() {
+                window.location.href = 'index.html'; // Chuyển về trang login
+            };
+
+        } else if (type === 'error') {
+            messagePanel.classList.add('border-red-500');
+            // Icon x đỏ
+            messageIcon.innerHTML = `<svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            closeMessageBoxButton.textContent = "Thử lại";
+            closeMessageBoxButton.className = "bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150";
+            
+            // Logic nút đóng khi lỗi -> Chỉ đóng popup
+            closeMessageBoxButton.onclick = function() {
+                messageBox.classList.add('hidden');
+                messageBox.classList.remove('flex');
+            };
+        }
+
+        messageBox.classList.remove('hidden');
+        messageBox.classList.add('flex');
+    }
+
+    // Xử lý sự kiện Submit Form
+    function handleResetPassword(event) {
+        event.preventDefault();
+
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        // 1. Kiểm tra độ dài
+        if (newPassword.length < 6) {
+            showMessage("Mật khẩu quá ngắn. Vui lòng nhập tối thiểu 6 ký tự.", 'error');
+            return;
+        }
+
+        // 2. Kiểm tra khớp mật khẩu
+        if (newPassword !== confirmPassword) {
+            showMessage("Mật khẩu xác nhận không trùng khớp. Vui lòng kiểm tra lại.", 'error');
+            return;
+        }
+
+        // 3. Gửi API (Mô phỏng)
+        // Tại đây bạn sẽ gọi fetch() đến backend Spring Boot để cập nhật mật khẩu
+        console.log("Đang gửi yêu cầu đổi mật khẩu...");
+        
+        // Giả lập thành công
+        setTimeout(() => {
+            showMessage("Đổi mật khẩu thành công! Bạn có thể đăng nhập ngay bây giờ.", 'success');
+        }, 800);
+    }
+
+</script>
+
+</body>
+</html>

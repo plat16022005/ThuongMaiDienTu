@@ -1,9 +1,14 @@
 package tmdt.com.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -102,5 +107,41 @@ public class HomeController {
     public String showForgot()
     {
     	return "forgetpass";
+    }
+    @GetMapping("/verify-otp")
+    public String showVerifyOtp(HttpSession session, Model model)
+    {
+        String email = (String) session.getAttribute("otp_email");
+        if (email == null) {
+            return "redirect:/forgot-password"; // hoặc trang nhập email
+        }
+        model.addAttribute("email", email);
+    	return "otp";	
+    }
+    @PostMapping("/api/email/verify-otp")
+    public ResponseEntity<String> verifyOtp(
+            @RequestBody Map<String, String> body,
+            HttpSession session) {
+
+        String inputOtp = body.get("otp");
+        String sessionOtp = (String) session.getAttribute("otp");
+
+        if (sessionOtp == null) {
+            return ResponseEntity.status(401).body("OTP đã hết hạn");
+        }
+
+        if (!sessionOtp.equals(inputOtp)) {
+            return ResponseEntity.badRequest().body("OTP không đúng");
+        }
+
+        // ✅ OTP đúng → cho phép reset mật khẩu
+        session.setAttribute("otp_verified", true);
+
+        return ResponseEntity.ok("Xác thực OTP thành công");
+    }
+    @GetMapping("/reset-password")
+    public String showResetForm()
+    {
+    	return "newpass";
     }
 }
