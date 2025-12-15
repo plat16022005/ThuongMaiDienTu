@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import tmdt.com.dto.UserAddressDTO;
 import tmdt.com.entity.User;
 import tmdt.com.service.UserService;
 
@@ -49,7 +50,10 @@ public class HomeController {
         if (user != null)
         {
             session.setAttribute("user", user);
-
+        	if (!userService.hasAddress(user))
+        	{
+        		return "redirect:/get-address";
+        	}
             String redirectUrl = (String) session.getAttribute("redirectUrl");
             if (redirectUrl != null) {
                 session.removeAttribute("redirectUrl");
@@ -76,21 +80,17 @@ public class HomeController {
     {
         if (!confirmPassword.equals(password))
         {
-        	System.out.println("Khác kìa!");
             redirectAttributes.addFlashAttribute("errorPass", "Vui lòng nhập lại mật khẩu đúng với đã nhập!");
             return "redirect:/account";
         }
 
         User newUser = userService.register(name, email, phone, password);
         if (newUser != null) {
-            // Auto login nếu muốn:
-            session.setAttribute("user", newUser);
             redirectAttributes.addFlashAttribute("success", "Tạo tài khoản thành công!");
             System.out.println("Tạo thành công");
-            return "redirect:/";
+            return "redirect:/account";
         } else {
             redirectAttributes.addFlashAttribute("error", "Email đã có người sử dụng");
-            System.out.println("Email xài r");
             return "redirect:/account";
         }
 
@@ -124,6 +124,7 @@ public class HomeController {
             HttpSession session) {
 
         String inputOtp = body.get("otp");
+        String emailUser = body.get("userEmail");
         String sessionOtp = (String) session.getAttribute("otp");
 
         if (sessionOtp == null) {
@@ -136,12 +137,35 @@ public class HomeController {
 
         // ✅ OTP đúng → cho phép reset mật khẩu
         session.setAttribute("otp_verified", true);
-
+        session.setAttribute("emailUser", emailUser);
         return ResponseEntity.ok("Xác thực OTP thành công");
     }
     @GetMapping("/reset-password")
     public String showResetForm()
     {
     	return "newpass";
+    }
+    @PostMapping("/api/password/do-reset-pass")
+    public ResponseEntity<String> handleResetPass(@RequestBody Map<String, String> body, HttpSession session)
+    {
+    	String email = (String) session.getAttribute("emailUser");
+    	String newPass = body.get("newPassword");
+        User user = userService.resetPass(email, newPass);
+        if (user == null) {
+            return ResponseEntity.status(404).body("Không tìm thấy tài khoản");
+        }
+        return ResponseEntity.ok("Đổi mật khẩu thành công");
+    }
+    @GetMapping("/get-address")
+    public String showGetAddress()
+    {
+    	return "getaddress";
+    }
+    @PostMapping("/api/address/get-address")
+    public ResponseEntity<String> handleGetAddress(@RequestBody UserAddressDTO body, HttpSession session)
+    {
+    	User user = (User) session.getAttribute("user");
+    	userService.getAddress(user, body.getAddressLine(), body.getWard(), body.getDistrict(), body.getProvince());
+    	return ResponseEntity.ok("Cập nhật địa chỉ thành công!");
     }
 }

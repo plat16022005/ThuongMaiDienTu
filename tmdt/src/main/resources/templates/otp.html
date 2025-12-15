@@ -118,7 +118,7 @@
 
         <!-- Quay lại -->
         <p class="text-center text-sm text-gray-600 mt-6 pt-4 border-t">
-            <a href="#" class="font-bold text-gray-600 hover:text-primary transition duration-150 ml-1">
+            <a href="/login" class="font-bold text-gray-600 hover:text-primary transition duration-150 ml-1">
                 < Quay lại trang Đăng nhập
             </a>
         </p>
@@ -233,7 +233,7 @@
 	    fetch("/api/email/verify-otp", {
 	        method: "POST",
 	        headers: { "Content-Type": "application/json" },
-	        body: JSON.stringify({ otp: otpCode })
+	        body: JSON.stringify({ otp: otpCode, userEmail: userEmail })
 	    })
 	    .then(async res => {
 	        const text = await res.text();
